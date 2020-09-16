@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "RiyqA5kT3HNNs02MbyeX+6s/B8aHfsAmbUV/18qi+6jT+39qChl3C9+ytnTU8KjS85eoVopV9RROSLmNGN4niw==",
+  "success": true,
+  "projectFilePath": "D:\\Works\\portal\\portal.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Cacetovsky\\.nuget\\packages\\mysqlconnector\\0.43.0\\mysqlconnector.0.43.0.nupkg.sha512",
+    "C:\\Users\\Cacetovsky\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
