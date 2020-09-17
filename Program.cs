@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -9,23 +10,26 @@ namespace portal
 {
     public class Program
     {
+        private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
+
+        private static MySqlConnection _connection {get; set;}
+
         public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().RunAsync();
-            Task<int> rdTask = foreverInsert();
+            Task rdTask = Task.Run(() => InsertTagsDB());
+            await CreateHostBuilder(args).Build().RunAsync();
         }
-        public static MySqlConnection _connection {get; set;}
-        public static Task<int> foreverInsert()
+        public static void InsertTagsDB()
         {
+            _connection = new MySqlConnection(_connectionString);
             while(true)
             {
-                _connection = new MySqlConnection("server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal");
                 _connection.Open();
                 string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), 'tag')";
                 MySqlCommand cmd = new MySqlCommand(sql, _connection);
                 cmd.ExecuteNonQuery();
                 _connection.Close();
-                Thread.Sleep(3000);
+                Thread.Sleep(500);
             }
         }
 
