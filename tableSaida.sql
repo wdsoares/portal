@@ -1,0 +1,6 @@
+CREATE TABLE `saaida` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dataHora` datetime NOT NULL,
+  `tag` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8
