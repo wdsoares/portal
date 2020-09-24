@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace portal.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PortalController : ControllerBase
     {
         /* public List<string> Get ()

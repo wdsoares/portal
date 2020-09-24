@@ -16,7 +16,7 @@ namespace portal
 
         public static async Task Main(string[] args)
         {
-            Task rdTask = Task.Run(() => InsertTagsDB());
+            //Task rdTask = Task.Run(() => InsertTagsDB());
             await CreateHostBuilder(args).Build().RunAsync();
         }
         public static void InsertTagsDB()
