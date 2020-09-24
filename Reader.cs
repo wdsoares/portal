@@ -40,7 +40,7 @@ namespace portal
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
             _portal.ParamSet("/reader/metadata", flagSet);
 
-            _portal.ParamSet("/reader/transportTimeout", 5000);
+            _portal.ParamSet("/reader/transportTimeout", 400);
 
             SimpleReadPlan plan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null, 1000);
 

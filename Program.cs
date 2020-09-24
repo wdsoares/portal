@@ -23,13 +23,22 @@ namespace portal
         public static void InsertTagsDB()
         {
             _connection = new MySqlConnection(_connectionString);
+            var service = new ReaderService();
             while(true)
             {
-                _connection.Open();
-                string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), 'tag')";
-                MySqlCommand cmd = new MySqlCommand(sql, _connection);
-                cmd.ExecuteNonQuery();
-                _connection.Close();
+
+                List<String> tags = service.Get();
+                if(tags.Count > 0)
+                {
+                    _connection.Open();
+                    foreach(var i in tags)
+                    {
+                        string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), " + i + ")";
+                        MySqlCommand cmd = new MySqlCommand(sql, _connection);
+                        cmd.ExecuteNonQuery();
+                    }
+                    _connection.Close();
+                }
                 Thread.Sleep(500);
             }
         }

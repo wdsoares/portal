@@ -17,7 +17,7 @@ namespace portal
 
         public List<string> Get()
         {
-            var tags = _reader.ReadTags(5000);
+            var tags = _reader.ReadTags(400);
 
             var tagList = new List<string>(); 
 
