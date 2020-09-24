@@ -1,4 +1,4 @@
-CREATE TABLE `saaida` (
+CREATE TABLE `saida` (
   `id` int NOT NULL AUTO_INCREMENT,
   `dataHora` datetime NOT NULL,
   `tag` varchar(100) DEFAULT NULL,
