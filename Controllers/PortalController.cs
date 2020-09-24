@@ -10,14 +10,6 @@ namespace portal.Controllers
     [Route("api/[controller]")]
     public class PortalController : ControllerBase
     {
-        /* public List<string> Get ()
-        {
-            var service = new ReaderService();
-
-            var tags = service.Get();
-
-            return tags;
-        } */
 
         [HttpGet]
         public string consultaBD()
@@ -41,6 +33,16 @@ namespace portal.Controllers
             result = String.Concat(result, JsonConvert.SerializeObject(lista));
 
             return result;
+        }
+
+        [HttpGet("reader")]
+        public List<string> Get ()
+        {
+            var service = new ReaderService();
+
+            var tags = service.Get();
+
+            return tags;
         }
     }
 }
