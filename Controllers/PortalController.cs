@@ -34,7 +34,8 @@ namespace portal.Controllers
 
             return result;
         }
-        [HttpGet("/{tag}")]
+        
+        [HttpGet("tag/{tag}")]
         public string consultaBD(string tag)
         {
             List<Tag> lista = new List<Tag>();
