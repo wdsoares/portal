@@ -51,14 +51,14 @@ namespace portal
             _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
             StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 8;
+            cnt.N = 10;
             StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000);
             _reader.ParamSet("/reader/read/plan", StopReadPlan);
             TagReadData[] tags;
 
             while(true)
             {
-                tags = _reader.Read(500);
+                tags = _reader.Read(250);
                 OnTagRead(tags);
             }
         }
@@ -69,12 +69,12 @@ namespace portal
             {
                 foreach(var i in tags)
                 {
-                        if(selectDB(i.EpcString).Length == 0)
-                        {
-                            string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
-                            MySqlCommand cmd = new MySqlCommand(sql, _connection);
-                            cmd.ExecuteNonQuery();
-                        }
+                    if(selectDB(i.EpcString).Length <= 2)
+                    {
+                        string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
+                        MySqlCommand cmd = new MySqlCommand(sql, _connection);
+                        cmd.ExecuteNonQuery();
+                    }
                 }  
             }
         }
