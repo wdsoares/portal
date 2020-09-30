@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using ThingMagic;
+using Newtonsoft.Json;
 
 namespace portal
 {
@@ -68,7 +69,7 @@ namespace portal
             {
                 foreach(var i in tags)
                 {
-                        if(selectDB(i).Length == 0)
+                        if(selectDB(i.EpcString).Length == 0)
                         {
                             string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
                             MySqlCommand cmd = new MySqlCommand(sql, _connection);

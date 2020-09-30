@@ -5,8 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using MySql.Data.MySqlClient;
-using ThingMagic;
+
 
 namespace portal
 {
