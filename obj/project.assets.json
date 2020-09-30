@@ -78,24 +78,26 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Angela Giuliani\\.nuget\\packages\\": {}
+    "C:\\Users\\Cacetovsky\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Angela Giuliani\\OneDrive\\Área de Trabalho\\portal-master\\portal.csproj",
+      "projectUniqueName": "D:\\Works\\portal\\portal.csproj",
       "projectName": "portal",
-      "projectPath": "C:\\Users\\Angela Giuliani\\OneDrive\\Área de Trabalho\\portal-master\\portal.csproj",
-      "packagesPath": "C:\\Users\\Angela Giuliani\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Angela Giuliani\\OneDrive\\Área de Trabalho\\portal-master\\obj\\",
+      "projectPath": "D:\\Works\\portal\\portal.csproj",
+      "packagesPath": "C:\\Users\\Cacetovsky\\.nuget\\packages\\",
+      "outputPath": "D:\\Works\\portal\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Angela Giuliani\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Cacetovsky\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp3.1"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -139,7 +141,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "c:\\program files\\dotnet\\sdk\\3.1.402\\RuntimeIdentifierGraph.json"
       }
     }
   }
