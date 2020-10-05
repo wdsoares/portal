@@ -43,7 +43,7 @@ namespace portal
             catch
             {
                 Console.WriteLine("Erro na conexão com o leitor!");
-                //Environment.Exit(1);
+                Environment.Exit(1);
             }
 
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
