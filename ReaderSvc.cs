@@ -4,25 +4,29 @@ using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using ThingMagic;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace portal
 {
     public class ReaderSvc
     {
         private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
-
-        private List<string> _readedTags;
         private Reader _reader;
-        public ReaderSvc(MySqlConnection _connection) 
+        private MySqlConnection _connection {get; set;}
+        public ReaderSvc()
         {
-            this._connection = _connection;
-               
-        }
-                private MySqlConnection _connection {get; set;}
+            _reader = createReader("tcp://192.168.0.101:8081");
+            _connection = new MySqlConnection(_connectionString);
+            try
+            {
+                _connection.Open();
+            }
+            catch(MySqlException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            Console.WriteLine("DB Conectado.");
 
-        public ReaderSvc(string uri)
-        {
-            _reader = createReader(uri);
         }
         public Reader createReader(string uri)
         {
@@ -32,16 +36,14 @@ namespace portal
         }
         public void InsertTagsDB()
         {
-            _connection = new MySqlConnection(_connectionString);
-            _connection.Open();
             try
             {
                 _reader.Connect();
-                Console.WriteLine("Conectado!");
             }
-            catch(IOException e)
+            catch
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Erro na conexão com o leitor!");
+                //Environment.Exit(1);
             }
 
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
@@ -83,11 +85,6 @@ namespace portal
         {
             List<Tag> lista = new List<Tag>();
             string result = "";
-            string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
-
-            MySqlConnection _connection;
-            _connection = new MySqlConnection(_connectionString);
-            _connection.Open();
             string sql = "SELECT * FROM saida WHERE tag = \""+ rdrTag +"\"";
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
             MySqlDataReader rdr = cmd.ExecuteReader();

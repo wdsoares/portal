@@ -13,7 +13,7 @@ namespace portal
     {
         public static async Task Main(string[] args)
         {
-            ReaderSvc rdr = new ReaderSvc("tcp://192.168.0.101:8081");
+            ReaderSvc rdr = new ReaderSvc();
             Task rdTask = Task.Run(() => rdr.InsertTagsDB());
             await CreateHostBuilder(args).Build().RunAsync();
         }
