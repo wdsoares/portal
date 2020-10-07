@@ -45,7 +45,7 @@ namespace portal
                 Console.WriteLine("Erro na conexão com o leitor!");
                 Environment.Exit(1);
             }
-
+            Console.WriteLine("Conectado ao leitor!");
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
             _reader.ParamSet("/reader/metadata", flagSet);
@@ -71,6 +71,7 @@ namespace portal
             {
                 foreach(var i in tags)
                 {
+                    Console.WriteLine("Tag read: " + i.EpcString);
                     if(selectDB(i.EpcString).Length <= 2)
                     {
                         string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
