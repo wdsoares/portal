@@ -11,7 +11,7 @@ namespace portal
     public class ReaderSvc
     {
         private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
-        private Reader _reader;
+        private Reader _reader {get; set;}
         private MySqlConnection _connection {get; set;}
         public ReaderSvc()
         {
