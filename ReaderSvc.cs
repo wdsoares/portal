@@ -12,6 +12,11 @@ namespace portal
     {
         private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
         private Reader _reader;
+        public ReaderSvc(MySqlConnection _connection) 
+        {
+            this._connection = _connection;
+               
+        }
         private MySqlConnection _connection {get; set;}
         public ReaderSvc()
         {
@@ -49,11 +54,11 @@ namespace portal
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
             _reader.ParamSet("/reader/metadata", flagSet);
-            _reader.ParamSet("/reader/radio/readPower", 1800);
+            _reader.ParamSet("/reader/radio/readPower", 2200);
             _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
             StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 10;
+            cnt.N = 12;
             StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000);
             _reader.ParamSet("/reader/read/plan", StopReadPlan);
             TagReadData[] tags;
