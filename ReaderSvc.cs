@@ -63,6 +63,8 @@ namespace portal
             _reader.ParamSet("/reader/read/plan", StopReadPlan);
             TagReadData[] tags;
 
+
+            Console.WriteLine("Read PWR: " + _reader.ParamGet("/reader/radio/readPower") + "mdBm");
             while(true)
             {
                 tags = _reader.Read(250);
