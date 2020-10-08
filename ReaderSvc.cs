@@ -5,6 +5,7 @@ using MySql.Data.MySqlClient;
 using ThingMagic;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using System.Net.Sockets;
 
 namespace portal
 {
@@ -45,11 +46,13 @@ namespace portal
             {
                 _reader.Connect();
             }
-            catch
+            catch(SocketException e)
             {
                 Console.WriteLine("Erro na conexão com o leitor!");
+                Console.WriteLine(e.Message);
                 Environment.Exit(1);
             }
+            
             Console.WriteLine("Conectado ao leitor!");
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
@@ -79,11 +82,19 @@ namespace portal
                 foreach(var i in tags)
                 {
                     Console.WriteLine("Tag read: " + i.EpcString);
-                    if(selectDB(i.EpcString).Length <= 2)
+                    
+                    if(selectDB(i.EpcString).Length < 3)
                     {
                         string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
                         MySqlCommand cmd = new MySqlCommand(sql, _connection);
-                        cmd.ExecuteNonQuery();
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch(MySqlException e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
                 }  
             }
