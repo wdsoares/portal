@@ -14,6 +14,7 @@ namespace portal
         public static async Task Main(string[] args)
         {
             ReaderSvc rdr = new ReaderSvc();
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(rdr.CloseConn);
             Task rdTask = Task.Run(() => rdr.InsertTagsDB());
             await CreateHostBuilder(args).Build().RunAsync();
         }

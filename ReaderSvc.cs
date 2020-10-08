@@ -34,6 +34,19 @@ namespace portal
             Console.WriteLine("DB Conectado.");
 
         }
+
+        public void CloseConn(object sender, System.EventArgs e)
+        {
+            try
+            {
+                _reader.Destroy();
+            }
+            catch
+            {
+                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
+            }
+            Console.WriteLine("Conexão finalizada!");
+        }
         public Reader createReader(string uri)
         {
             ThingMagic.Reader.SetSerialTransport("tcp", SerialTransportTCP.CreateSerialReader);
@@ -58,12 +71,9 @@ namespace portal
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
             _reader.ParamSet("/reader/metadata", flagSet);
             _reader.ParamSet("/reader/radio/readPower", 2200);
-            _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
-            StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 12;
-            StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000);
-            _reader.ParamSet("/reader/read/plan", StopReadPlan);
+            SimpleReadPlan plan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null, 1000);
+            _reader.ParamSet("/reader/read/plan", plan);
             TagReadData[] tags;
 
 
@@ -82,7 +92,7 @@ namespace portal
                 foreach(var i in tags)
                 {
                     Console.WriteLine("Tag read: " + i.EpcString);
-                    
+
                     if(selectDB(i.EpcString).Length < 3)
                     {
                         string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
@@ -95,6 +105,7 @@ namespace portal
                         {
                             Console.WriteLine(e.Message);
                         }
+                        Console.WriteLine("Tag inserida: " + i.EpcString);
                     }
                 }  
             }
