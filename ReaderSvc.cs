@@ -53,7 +53,7 @@ namespace portal
             _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
             StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 10;
+            cnt.N = 6;
             StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000);
             _reader.ParamSet("/reader/read/plan", StopReadPlan);
             TagReadData[] tags;
@@ -80,6 +80,18 @@ namespace portal
                     }
                 }  
             }
+        }
+        public void CloseConn(object sender, System.EventArgs e)
+        {
+            try
+            {
+                _reader.Destroy();
+            }
+            catch
+            {
+                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
+            }
+            Console.WriteLine("Conexão finalizada!");
         }
 
         public string selectDB(string rdrTag)
