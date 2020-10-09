@@ -6,6 +6,7 @@ using ThingMagic;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace portal
 {
@@ -35,6 +36,13 @@ namespace portal
 
         }
 
+        public Reader createReader(string uri)
+        {
+            ThingMagic.Reader.SetSerialTransport("tcp", SerialTransportTCP.CreateSerialReader);
+            Reader reader = Reader.Create(uri);
+            return reader;
+        }
+
         public void CloseConn(object sender, System.EventArgs e)
         {
             try
@@ -46,12 +54,6 @@ namespace portal
                 Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
             }
             Console.WriteLine("Conexão finalizada!");
-        }
-        public Reader createReader(string uri)
-        {
-            ThingMagic.Reader.SetSerialTransport("tcp", SerialTransportTCP.CreateSerialReader);
-            Reader reader = Reader.Create(uri);
-            return reader;
         }
         public void InsertTagsDB()
         {
@@ -70,18 +72,22 @@ namespace portal
             _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
             SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
             _reader.ParamSet("/reader/metadata", flagSet);
-            _reader.ParamSet("/reader/radio/readPower", 2200);
+            _reader.ParamSet("/reader/radio/readPower", 2400);
+            _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
-            SimpleReadPlan plan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null, 1000);
-            _reader.ParamSet("/reader/read/plan", plan);
+            /* StopOnTagCount cnt = new StopOnTagCount();
+            cnt.N = 12;
+            StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000); */
+
+            SimpleReadPlan readPlan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null,  1000);
+            _reader.ParamSet("/reader/read/plan", readPlan);
             TagReadData[] tags;
 
-
-            Console.WriteLine("Read PWR: " + _reader.ParamGet("/reader/radio/readPower") + "mdBm");
+            Console.WriteLine("Read PWR: " + _reader.ParamGet("/reader/radio/readPower") + " mdBm");
             while(true)
             {
-                tags = _reader.Read(250);
-                OnTagRead(tags);
+                tags = _reader.Read(1000);
+                Task rdTask = Task.Run(() => OnTagRead(tags));
             }
         }
         
@@ -93,7 +99,7 @@ namespace portal
                 {
                     Console.WriteLine("Tag read: " + i.EpcString);
 
-                    if(selectDB(i.EpcString).Length < 3)
+                    if(checkDupe(i.EpcString) == 0)
                     {
                         string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
                         MySqlCommand cmd = new MySqlCommand(sql, _connection);
@@ -107,24 +113,17 @@ namespace portal
                         }
                         Console.WriteLine("Tag inserida: " + i.EpcString);
                     }
-                }  
-            }
+                }
+            }  
         }
 
-        public string selectDB(string rdrTag)
+        public int checkDupe(string rdrTag)
         {
             List<Tag> lista = new List<Tag>();
-            string result = "";
-            string sql = "SELECT * FROM saida WHERE tag = \""+ rdrTag +"\"";
+            int result;
+            string sql = "SELECT COUNT(id) FROM saida WHERE tag = \""+ rdrTag +"\"";
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            MySqlDataReader rdr = cmd.ExecuteReader();
-            while(rdr.Read())
-            {
-                lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
-            }
-            _connection.Close();
-            rdr.Close();
-            result = String.Concat(result, JsonConvert.SerializeObject(lista));
+            result = int.Parse(cmd.ExecuteScalar().ToString());
 
             return result;
         }
