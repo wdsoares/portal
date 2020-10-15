@@ -27,6 +27,7 @@ namespace portal
             try
             {
                 _connection.Open();
+                createDB();
             }
             catch(MySqlException e)
             {
@@ -55,7 +56,7 @@ namespace portal
             }
             Console.WriteLine("Conexão finalizada!");
         }
-        public void InsertTagsDB()
+        public void StartReading()
         {
             try
             {
@@ -126,6 +127,26 @@ namespace portal
             result = int.Parse(cmd.ExecuteScalar().ToString());
 
             return result;
+        }
+
+        public void createDB()
+        {
+            string createSchema = "CREATE SCHEMA IF NOT EXISTS `portal` COLLATE = `utf8mb4_0900_ai_ci`;" +
+            "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
+            "(`id` int NOT NULL AUTO_INCREMENT, `dataHora` datetime NOT NULL," + 
+            "`tag` varchar(100) DEFAULT NULL, PRIMARY KEY (`id`)) " +
+            "ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;";
+            
+            MySqlCommand cmd = new MySqlCommand(createSchema, _connection);
+
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch(MySqlException e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }
