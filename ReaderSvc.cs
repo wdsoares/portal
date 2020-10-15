@@ -7,13 +7,14 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace portal
 {
     public class ReaderSvc
     {
         // Alterar usuário e senha conforme o server.
-        private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
+        private string _connectionString { get; set; }
         private Reader _reader;
         public ReaderSvc(MySqlConnection _connection) 
         {
@@ -24,17 +25,18 @@ namespace portal
         public ReaderSvc()
         {
             _reader = createReader("tcp://192.168.0.101:8081");
+            readDBSettings();
             _connection = new MySqlConnection(_connectionString);
             try
             {
                 _connection.Open();
                 createDB();
+                Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
             {
                 Console.WriteLine(e.Message);
             }
-            Console.WriteLine("DB Conectado.");
 
         }
 
@@ -93,7 +95,7 @@ namespace portal
             }
         }
         
-        public void OnTagRead(TagReadData[] tags)
+        private void OnTagRead(TagReadData[] tags)
         {
             if(tags.Length > 0)
             {
@@ -119,7 +121,7 @@ namespace portal
             }  
         }
 
-        public int checkDupe(string rdrTag)
+        private int checkDupe(string rdrTag)
         {
             List<Tag> lista = new List<Tag>();
             int result;
@@ -130,10 +132,37 @@ namespace portal
             return result;
         }
 
-        public void createDB()
+        private void readDBSettings()
         {
-            string createSchema = "CREATE SCHEMA IF NOT EXISTS `portal` COLLATE = `utf8mb4_0900_ai_ci`;" +
-            "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
+            string arq = "";
+
+            try
+            {
+                arq = File.ReadAllText("./Resources/dbSettings.json");
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine("Não foi possível ler o arquivo de configs!");
+                Console.WriteLine(e.Message);
+            }
+
+            if(arq.Length > 1)
+            {
+                JObject obj = JObject.Parse(arq);
+                string user = (string)obj["user"];
+                string password = (string)obj["password"];
+                string host = (string)obj["host"];
+                string port = (string)obj["port"];
+
+                _connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=portal";
+
+                Console.WriteLine("Connection string: " + _connectionString);
+            }
+        }
+
+        private void createDB()
+        {
+            string createSchema = "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
             "(`id` int NOT NULL AUTO_INCREMENT, `dataHora` datetime NOT NULL," + 
             "`tag` varchar(100) DEFAULT NULL, PRIMARY KEY (`id`)) " +
             "ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;";
