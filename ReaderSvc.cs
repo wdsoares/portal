@@ -1,36 +1,23 @@
 using System;
-using System.IO;
-using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using ThingMagic;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace portal
 {
     public class ReaderSvc
     {
-        // Alterar usuário e senha conforme o server.
-        private string _connectionString { get; set; }
         private Reader _reader;
-        public ReaderSvc(MySqlConnection _connection) 
-        {
-            this._connection = _connection;
-               
-        }
-        private MySqlConnection _connection {get; set;}
+        private Database db = new Database();
         public ReaderSvc()
         {
             _reader = createReader("tcp://192.168.0.101:8081");
-            readDBSettings();
-            _connection = new MySqlConnection(_connectionString);
             try
             {
-                _connection.Open();
-                createDB();
+                db.openConnection();
+                db.createDB();
                 Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
@@ -39,25 +26,11 @@ namespace portal
             }
 
         }
-
         public Reader createReader(string uri)
         {
             ThingMagic.Reader.SetSerialTransport("tcp", SerialTransportTCP.CreateSerialReader);
             Reader reader = Reader.Create(uri);
             return reader;
-        }
-
-        public void CloseConn(object sender, System.EventArgs e)
-        {
-            try
-            {
-                _reader.Destroy();
-            }
-            catch
-            {
-                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
-            }
-            Console.WriteLine("Conexão finalizada!");
         }
         public void StartReading()
         {
@@ -69,7 +42,7 @@ namespace portal
             {
                 Console.WriteLine("Erro na conexão com o leitor!");
                 Console.WriteLine(e.Message);
-                Environment.Exit(1);
+                //Environment.Exit(1);
             }
             
             Console.WriteLine("Conectado ao leitor!");
@@ -79,9 +52,6 @@ namespace portal
             _reader.ParamSet("/reader/radio/readPower", 2400);
             _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
             
-            /* StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 12;
-            StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000); */
 
             SimpleReadPlan readPlan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null,  1000);
             _reader.ParamSet("/reader/read/plan", readPlan);
@@ -93,8 +63,7 @@ namespace portal
                 tags = _reader.Read(1000);
                 Task rdTask = Task.Run(() => OnTagRead(tags));
             }
-        }
-        
+        }  
         private void OnTagRead(TagReadData[] tags)
         {
             if(tags.Length > 0)
@@ -103,80 +72,24 @@ namespace portal
                 {
                     Console.WriteLine("Tag read: " + i.EpcString);
 
-                    if(checkDupe(i.EpcString) == 0)
+                    if(db.checkDupe(i.EpcString) == 0)
                     {
-                        string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
-                        MySqlCommand cmd = new MySqlCommand(sql, _connection);
-                        try
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
-                        catch(MySqlException e)
-                        {
-                            Console.WriteLine(e.Message);
-                        }
-                        Console.WriteLine("Tag inserida: " + i.EpcString);
+                        db.insertDB(i.EpcString);
                     }
                 }
             }  
-        }
-
-        private int checkDupe(string rdrTag)
+       }
+        public void CloseConn(object sender, System.EventArgs e)
         {
-            List<Tag> lista = new List<Tag>();
-            int result;
-            string sql = "SELECT COUNT(id) FROM saida WHERE tag = \""+ rdrTag +"\"";
-            MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            result = int.Parse(cmd.ExecuteScalar().ToString());
-
-            return result;
-        }
-
-        private void readDBSettings()
-        {
-            string arq = "";
-
             try
             {
-                arq = File.ReadAllText("./Resources/dbSettings.json");
+                _reader.Destroy();
             }
-            catch(IOException e)
+            catch
             {
-                Console.WriteLine("Não foi possível ler o arquivo de configs!");
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
             }
-
-            if(arq.Length > 1)
-            {
-                JObject obj = JObject.Parse(arq);
-                string user = (string)obj["user"];
-                string password = (string)obj["password"];
-                string host = (string)obj["host"];
-                string port = (string)obj["port"];
-
-                _connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=portal";
-
-                Console.WriteLine("Connection string: " + _connectionString);
-            }
-        }
-
-        private void createDB()
-        {
-            string createSchema = "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
-            "(`id` int NOT NULL AUTO_INCREMENT, `dataHora` datetime NOT NULL," + 
-            "`tag` varchar(100) DEFAULT NULL, PRIMARY KEY (`id`)) " +
-            "ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;";
-            
-            MySqlCommand cmd = new MySqlCommand(createSchema, _connection);
-
-            try
-            {
-                cmd.ExecuteNonQuery();
-            }
-            catch(MySqlException e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            Console.WriteLine("Conexão finalizada!");
         }
     }
 }
