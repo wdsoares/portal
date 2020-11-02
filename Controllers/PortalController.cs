@@ -10,16 +10,10 @@ namespace portal.Controllers
         Database db = new Database();
 
         [HttpGet]
-        public string consultaBD()
-        {
-            return db.get();
-        }
-        
+        public string consultaBD() => db.get();
+
         [HttpGet("tag/{tag}")]
-        public string consultaBD(string tag)
-        {
-            return db.get(tag);
-        }
+        public string consultaBD(string tag) => db.get(tag);
 
     }
 }
