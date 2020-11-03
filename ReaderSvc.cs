@@ -18,6 +18,7 @@ namespace portal
             {
                 db.openConnection();
                 db.createDB();
+                db.closeConnection();
                 Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
@@ -42,7 +43,7 @@ namespace portal
             {
                 Console.WriteLine("Erro na conexão com o leitor!");
                 Console.WriteLine(e.Message);
-                //Environment.Exit(1);
+                Environment.Exit(1);
             }
             
             Console.WriteLine("Conectado ao leitor!");

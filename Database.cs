@@ -24,6 +24,10 @@ namespace portal
         {
             _connection.Open();
         }
+        public void closeConnection()
+        {
+            _connection.Close();
+        }
         public int checkDupe(string rdrTag)
         {
             List<Tag> lista = new List<Tag>();
@@ -57,7 +61,7 @@ namespace portal
                 string host = (string)obj["host"];
                 string port = (string)obj["port"];
 
-                _connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=portal";
+                this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=portal";
                 this.setConnection(_connectionString);
             }
         }
@@ -73,7 +77,9 @@ namespace portal
 
             try
             {
+                this.openConnection();
                 cmd.ExecuteNonQuery();
+                this.closeConnection();
             }
             catch(MySqlException e)
             {
@@ -87,7 +93,9 @@ namespace portal
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
             try
             {
+                this.openConnection();
                 cmd.ExecuteNonQuery();
+                this.closeConnection();
             }
             catch(MySqlException e)
             {
@@ -100,19 +108,26 @@ namespace portal
         {
             List<Tag> lista = new List<Tag>();
             string result = "";
-            _connection.Open();
 
-            string sql = "SELECT * FROM saida";
-            MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            MySqlDataReader rdr = cmd.ExecuteReader();
-
-            while(rdr.Read())
+            try
             {
-                lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
+                string sql = "SELECT * FROM saida";
+                MySqlCommand cmd = new MySqlCommand(sql, _connection);
+                this.openConnection();
+                MySqlDataReader rdr = cmd.ExecuteReader();
+
+                while(rdr.Read())
+                {
+                    lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
+                }
+                this.closeConnection();
+                rdr.Close();
+                result = String.Concat(result, JsonConvert.SerializeObject(lista));
             }
-            _connection.Close();
-            rdr.Close();
-            result = String.Concat(result, JsonConvert.SerializeObject(lista));
+            catch(MySqlException e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return result;
         }
@@ -121,28 +136,26 @@ namespace portal
             List<Tag> lista = new List<Tag>();
             string result = "";
 
-            try
-            {
-                readDBSettings();
-                _connection.Open();
-            }
-            catch
-            {
-                _connection.Close();
-            }
-
-
             string sql = "SELECT * FROM saida WHERE tag = \"" + tag + "\"";
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            MySqlDataReader rdr = cmd.ExecuteReader();
 
-            while(rdr.Read())
+            try
             {
-                lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
+                this.openConnection();
+                MySqlDataReader rdr = cmd.ExecuteReader();
+
+                while(rdr.Read())
+                {
+                    lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
+                }
+                this.closeConnection();
+                rdr.Close();
+                result = String.Concat(result, JsonConvert.SerializeObject(lista));
             }
-            _connection.Close();
-            rdr.Close();
-            result = String.Concat(result, JsonConvert.SerializeObject(lista));
+            catch(MySqlException e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return result;
         }
