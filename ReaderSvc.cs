@@ -10,15 +10,16 @@ namespace portal
     public class ReaderSvc
     {
         private Reader _reader;
+
+        private bool readerConnStat {get; set;}
         private Database db = new Database();
         public ReaderSvc()
         {
-            _reader = createReader("tcp://192.168.0.101:8081");
+            this.readerConnStat = false;
+            this._reader = createReader("tcp://192.168.0.101:8081");
             try
             {
-                db.openConnection();
-                db.createDB();
-                db.closeConnection();
+                this.db.createDB();
                 Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
@@ -33,39 +34,52 @@ namespace portal
             Reader reader = Reader.Create(uri);
             return reader;
         }
-        public void StartReading()
+        public void startReading()
         {
-            try
-            {
-                _reader.Connect();
-            }
-            catch(SocketException e)
-            {
-                Console.WriteLine("Erro na conexão com o leitor!");
-                Console.WriteLine(e.Message);
-                Environment.Exit(1);
-            }
-            
-            Console.WriteLine("Conectado ao leitor!");
-            _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
-            SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
-            _reader.ParamSet("/reader/metadata", flagSet);
-            _reader.ParamSet("/reader/radio/readPower", 2400);
-            _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
-            
-
-            SimpleReadPlan readPlan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null,  1000);
-            _reader.ParamSet("/reader/read/plan", readPlan);
             TagReadData[] tags;
-
-            Console.WriteLine("Read PWR: " + _reader.ParamGet("/reader/radio/readPower") + " mdBm");
-            while(true)
+            this.configReader();
+            while(true) // Loop infinito de leitura e inserção de tags
             {
-                tags = _reader.Read(1000);
-                Task rdTask = Task.Run(() => OnTagRead(tags));
+                if(!this.readerConnStat) // Checa se existe conexão com o leitor RFID, caso contrário, executa o método configReader() para conectar.
+                    this.configReader();
+                try // Tenta executar a leitura, caso ocorra exceção seta o status da conexão para falso
+                {
+                    tags = this._reader.Read(1000);
+                    Task rdTask = Task.Run(() => onTagRead(tags));
+                }
+                catch(SystemException e)
+                {
+                    Console.WriteLine(e.Message);
+                    this.readerConnStat = false;
+                }
             }
+        }
+
+        public void configReader()
+        {
+            do
+            {
+                try
+                {
+                    _reader.Connect();
+                    Console.WriteLine("Conectado ao leitor!");
+                    this.readerConnStat = true;
+                    _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
+                    SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
+                    _reader.ParamSet("/reader/metadata", flagSet);
+                    _reader.ParamSet("/reader/radio/readPower", 2400);
+                    _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
+                    SimpleReadPlan readPlan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null,  1000);
+                    _reader.ParamSet("/reader/read/plan", readPlan);
+                }
+                catch(SocketException e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Erro na conexão com o leitor, será realizada nova tentativa de conexão!");
+                }
+            }while(!this.readerConnStat);
         }  
-        private void OnTagRead(TagReadData[] tags)
+        private void onTagRead(TagReadData[] tags)
         {
             if(tags.Length > 0)
             {
