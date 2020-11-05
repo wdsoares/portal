@@ -47,10 +47,13 @@ namespace portal
                     tags = this._reader.Read(1000);
                     Task rdTask = Task.Run(() => onTagRead(tags));
                 }
-                catch(SystemException e)
+                catch
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Houve um erro na leitura, tentando conectar novamente em 10s.");
                     this.readerConnStat = false;
+                    this._reader.Destroy();
+                    System.Threading.Thread.Sleep(10000);
+                    this._reader = createReader("tcp://192.168.0.101:8081");
                 }
             }
         }
