@@ -93,18 +93,18 @@ namespace portal
                     }
                 }
             }  
-       }
-        public void CloseConn(object sender, System.EventArgs e)
-        {
-            try
-            {
-                _reader.Destroy();
-            }
-            catch
-            {
-                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
-            }
-            Console.WriteLine("Conexão finalizada!");
-        }
+         }
+         public void CloseConn(object sender, System.EventArgs e)
+         {
+              try
+              {
+                  _reader.Destroy();
+              }
+              catch
+              {
+                  Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
+              }
+              Console.WriteLine("Conexão finalizada!");
+         }
     }
 }
