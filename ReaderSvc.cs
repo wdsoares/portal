@@ -76,6 +76,7 @@ namespace portal
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine("Erro na conexão com o leitor, será realizada nova tentativa de conexão!");
+                    System.Threading.Thread.Sleep(2000);
                 }
             }while(!this.readerConnStat);
         }  
