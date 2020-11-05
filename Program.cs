@@ -15,7 +15,7 @@ namespace portal
         {
             ReaderSvc rdr = new ReaderSvc();
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(rdr.CloseConn);
-            Task rdTask = Task.Run(() => rdr.InsertTagsDB());
+            Task rdTask = Task.Run(() => rdr.startReading());
             await CreateHostBuilder(args).Build().RunAsync();
         }
 
@@ -25,7 +25,8 @@ namespace portal
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("http://0.0.0.0:5000", "http://0.0.0.0:5001")
+                              .UseStartup<Startup>();
                 });
     }
 }

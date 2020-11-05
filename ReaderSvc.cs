@@ -1,31 +1,31 @@
 using System;
-using System.IO;
-using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using ThingMagic;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace portal
 {
     public class ReaderSvc
     {
-        private const string _connectionString = "server=127.0.0.1;user id=root;password=senhaforte;port=3306;database=portal";
-        private Reader _reader {get; set;}
-        private MySqlConnection _connection {get; set;}
+        private Reader _reader;
+
+        private bool readerConnStat {get; set;}
+        private Database db = new Database();
         public ReaderSvc()
         {
-            _reader = createReader("tcp://192.168.0.101:8081");
-            _connection = new MySqlConnection(_connectionString);
+            this.readerConnStat = false;
+            this._reader = createReader("tcp://192.168.0.101:8081");
             try
             {
-                _connection.Open();
+                this.db.createDB();
+                Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
             {
                 Console.WriteLine(e.Message);
             }
-            Console.WriteLine("DB Conectado.");
 
         }
         public Reader createReader(string uri)
@@ -34,82 +34,77 @@ namespace portal
             Reader reader = Reader.Create(uri);
             return reader;
         }
-        public void InsertTagsDB()
+        public void startReading()
         {
-            try
-            {
-                _reader.Connect();
-            }
-            catch
-            {
-                Console.WriteLine("Erro na conexão com o leitor!");
-                Environment.Exit(1);
-            }
-            Console.WriteLine("Conectado ao leitor!");
-            _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
-            SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
-            _reader.ParamSet("/reader/metadata", flagSet);
-            _reader.ParamSet("/reader/radio/readPower", 1800);
-            _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
-            
-            StopOnTagCount cnt = new StopOnTagCount();
-            cnt.N = 6;
-            StopTriggerReadPlan StopReadPlan = new StopTriggerReadPlan(cnt, null, TagProtocol.GEN2, null, null, 1000);
-            _reader.ParamSet("/reader/read/plan", StopReadPlan);
             TagReadData[] tags;
-
-            while(true)
+            this.configReader();
+            while(true) // Loop infinito de leitura e inserção de tags
             {
-                tags = _reader.Read(250);
-                OnTagRead(tags);
+                if(!this.readerConnStat) // Checa se existe conexão com o leitor RFID, caso contrário, executa o método configReader() para conectar.
+                    this.configReader();
+                try // Tenta executar a leitura, caso ocorra exceção seta o status da conexão para falso
+                {
+                    tags = this._reader.Read(1000);
+                    Task rdTask = Task.Run(() => onTagRead(tags));
+                }
+                catch(SystemException e)
+                {
+                    Console.WriteLine(e.Message);
+                    this.readerConnStat = false;
+                }
             }
         }
-        
-        public void OnTagRead(TagReadData[] tags)
+
+        public void configReader()
+        {
+            do
+            {
+                try
+                {
+                    _reader.Connect();
+                    Console.WriteLine("Conectado ao leitor!");
+                    this.readerConnStat = true;
+                    _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
+                    SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
+                    _reader.ParamSet("/reader/metadata", flagSet);
+                    _reader.ParamSet("/reader/radio/readPower", 2400);
+                    _reader.ParamSet("/reader/gen2/q", new Gen2.StaticQ(4));
+                    SimpleReadPlan readPlan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null,  1000);
+                    _reader.ParamSet("/reader/read/plan", readPlan);
+                }
+                catch(SocketException e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Erro na conexão com o leitor, será realizada nova tentativa de conexão!");
+                }
+            }while(!this.readerConnStat);
+        }  
+        private void onTagRead(TagReadData[] tags)
         {
             if(tags.Length > 0)
             {
                 foreach(var i in tags)
                 {
                     Console.WriteLine("Tag read: " + i.EpcString);
-                    if(selectDB(i.EpcString).Length <= 2)
+
+                    if(db.checkDupe(i.EpcString) == 0)
                     {
-                        string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ i.EpcString +"\")";
-                        MySqlCommand cmd = new MySqlCommand(sql, _connection);
-                        cmd.ExecuteNonQuery();
+                        db.insertDB(i.EpcString);
                     }
-                }  
-            }
-        }
-        public void CloseConn(object sender, System.EventArgs e)
-        {
-            try
-            {
-                _reader.Destroy();
-            }
-            catch
-            {
-                Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
-            }
-            Console.WriteLine("Conexão finalizada!");
-        }
-
-        public string selectDB(string rdrTag)
-        {
-            List<Tag> lista = new List<Tag>();
-            string result = "";
-            string sql = "SELECT * FROM saida WHERE tag = \""+ rdrTag +"\"";
-            MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            MySqlDataReader rdr = cmd.ExecuteReader();
-            while(rdr.Read())
-            {
-                lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
-            }
-            _connection.Close();
-            rdr.Close();
-            result = String.Concat(result, JsonConvert.SerializeObject(lista));
-
-            return result;
-        }
+                }
+            }  
+         }
+         public void CloseConn(object sender, System.EventArgs e)
+         {
+              try
+              {
+                  _reader.Destroy();
+              }
+              catch
+              {
+                  Console.WriteLine("Não foi possível finalizar a conexão ao leitor!");
+              }
+              Console.WriteLine("Conexão finalizada!");
+         }
     }
 }
