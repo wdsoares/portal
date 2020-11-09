@@ -4,6 +4,7 @@ using ThingMagic;
 using Microsoft.Extensions.Configuration;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace portal
 {
@@ -89,11 +90,18 @@ namespace portal
             {
                 foreach(var i in tags)
                 {
-                    Console.WriteLine("Tag read: " + i.EpcString);
-
-                    if(db.checkDupe(i.EpcString) == 0)
+                    if(Regex.IsMatch(i.EpcString, @"^[0-9]*$"))
                     {
-                        db.insertDB(i.EpcString);
+                        Console.WriteLine("Tag read: " + i.EpcString);
+
+                        if(db.checkDupe(i.EpcString) == 0)
+                        {
+                            db.insertDB(i.EpcString);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("TAG INVÁLIDA: " + i.EpcString);
                     }
                 }
             }  
