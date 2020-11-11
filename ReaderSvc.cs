@@ -14,6 +14,7 @@ namespace portal
 
         private bool readerConnStat {get; set;}
         private Database db = new Database();
+        private DatabaseAdonis dbAdonis = new DatabaseAdonis();
         public ReaderSvc()
         {
             this.readerConnStat = false;
@@ -97,6 +98,7 @@ namespace portal
                         if(db.checkDupe(i.EpcString) == 0)
                         {
                             db.insertDB(i.EpcString);
+                            dbAdonis.update(i.EpcString);
                         }
                     }
                     else
