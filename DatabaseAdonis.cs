@@ -65,7 +65,7 @@ namespace portal
             try
             {
                 this.openConnection();
-                cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync();
                 this.closeConnection();
             }
             catch(MySqlException e)
