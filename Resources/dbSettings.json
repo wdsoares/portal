@@ -1,0 +1,16 @@
+{
+    "portal":
+    {
+        "user": "root",
+        "password": "admin",
+        "host": "localhost",
+        "port": "3306"
+    },
+    "adonis":
+    {
+        "user": "root",
+        "password": "admin",
+        "host": "localhost",
+        "port": "3306"
+    }
+}

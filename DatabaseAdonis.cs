@@ -46,10 +46,10 @@ namespace portal
             if(arq.Length > 1)
             {
                 JObject obj = JObject.Parse(arq);
-                string user = (string)obj["user"];
-                string password = (string)obj["password"];
-                string host = (string)obj["host"];
-                string port = (string)obj["port"];
+                string user = (string)obj["adonis"]["user"];
+                string password = (string)obj["adonis"]["password"];
+                string host = (string)obj["adonis"]["host"];
+                string port = (string)obj["adonis"]["port"];
 
                 this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=adonis";
                 this.setConnection(_connectionString);
