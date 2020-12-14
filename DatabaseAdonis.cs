@@ -57,11 +57,10 @@ namespace portal
         }
         public void update(string epc)
         {
-            int barcode_id = this.getBarcodeID(epc);
-            int product_id = this.getProductID(epc);
+            int tag_id = this.getTagID(epc);
 
-            string sql = "INSERT INTO saidas(id_produto, epc, barcode_id, created_at, updated_at) VALUES (" + product_id + ", \"" + epc + "\", " + barcode_id + ", now(), now())";
-            if(barcode_id != -1 && product_id != -1)
+            string sql = "INSERT INTO saidas(tag_id, created_at, updated_at) VALUES (" + tag_id + " , now(), now())";
+            if(tag_id != -1)
             {
                 MySqlCommand cmd = new MySqlCommand(sql, this._connection);
                 try
@@ -79,11 +78,10 @@ namespace portal
                 }
             }
         }
-
-        public int getBarcodeID(string epc)
+        public int getTagID(string epc)
         {
-            string sql = "SELECT barcode_id FROM tags WHERE epc = \"" + epc + "\"";
-            int barcode_id = -1;
+            string sql = "SELECT t.id FROM tags t WHERE t.epc like \"" + epc + "\"";
+            int tag_id = -1;
             MySqlDataReader rdr = null;
 
             try
@@ -94,7 +92,7 @@ namespace portal
                 
                 while(rdr.Read())
                 {
-                    barcode_id = rdr.GetInt32(0);
+                    tag_id = rdr.GetInt32(0);
                 }
             }
             catch(MySqlException e){
@@ -105,35 +103,7 @@ namespace portal
                 rdr.Close();
             }
 
-            return barcode_id;
+            return tag_id;
         }
-
-        public int getProductID(string epc)
-        {
-            string sql = "SELECT b.product_id FROM barcodes b JOIN tags t ON b.id = t.barcode_id WHERE t.epc = \"" + epc + "\"";
-            int product_id = -1;
-            MySqlDataReader rdr = null;
-
-            try
-            {
-                MySqlCommand cmd = new MySqlCommand(sql, this._connection);
-                this.openConnection();
-                rdr = cmd.ExecuteReader();
-                
-                while(rdr.Read())
-                {
-                    product_id = rdr.GetInt32(0);
-                }
-            }
-            catch(MySqlException e){
-                Console.WriteLine(e.Message);
-            }
-            finally{
-                this.closeConnection();
-                rdr.Close();
-            }
-
-            return product_id;
-        } 
     }
 }
