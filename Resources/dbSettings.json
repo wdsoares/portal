@@ -1,7 +1,8 @@
 {
     "leitorConfigs":
     {
-        "portalName": "Porta Frente"
+        "portalName": "Porta Frente",
+        "readerAddr": "tcp://192.168.0.101:8081"
     },
     "portal":
     {
@@ -9,7 +10,7 @@
         "password": "admin",
         "host": "localhost",
         "port": "3306",
-        "dbName": "portal",
+        "dbName": "portal"
     },
     "adonis":
     {

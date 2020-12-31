@@ -5,23 +5,26 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace portal
 {
     public class ReaderSvc
     {
         private Reader _reader;
-
         private bool readerConnStat {get; set;}
         private Database db = new Database();
         private DatabaseAdonis dbAdonis = new DatabaseAdonis();
+        private string readerAddr { get; set; }
         public ReaderSvc()
         {
-            this.readerConnStat = false;
-            this._reader = createReader("tcp://192.168.0.101:8081");
+            readerConnStat = false;
+            readJsonSettings();
+            _reader = createReader(readerAddr);
             try
             {
-                this.db.createDB();
+                db.createDB();
                 Console.WriteLine("DB Conectado.");
             }
             catch(MySqlException e)
@@ -36,26 +39,47 @@ namespace portal
             Reader reader = Reader.Create(uri);
             return reader;
         }
+
+        public void readJsonSettings()
+        {
+            string arq = "";
+
+            try
+            {
+                arq = File.ReadAllText("./Resources/dbSettings.json");
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine("Não foi possível ler o arquivo de configs!");
+                Console.WriteLine(e.Message);
+            }
+
+            if(arq.Length > 1)
+            {
+                JObject obj = JObject.Parse(arq);
+                readerAddr = (string)obj["leitorConfigs"]["readerAddr"];
+            }
+        }
         public void startReading()
         {
             TagReadData[] tags;
-            this.configReader();
+            configReader();
             while(true) // Loop infinito de leitura e inserção de tags
             {
-                if(!this.readerConnStat) // Checa se existe conexão com o leitor RFID, caso contrário, executa o método configReader() para conectar.
-                    this.configReader();
+                if(!readerConnStat) // Checa se existe conexão com o leitor RFID, caso contrário, executa o método configReader() para conectar.
+                    configReader();
                 try // Tenta executar a leitura, caso ocorra exceção seta o status da conexão para falso
                 {
-                    tags = this._reader.Read(1000);
+                    tags = _reader.Read(1000);
                     Task rdTask = Task.Run(() => onTagRead(tags));
                 }
                 catch
                 {
                     Console.WriteLine("Houve um erro na leitura, tentando conectar novamente em 10s.");
-                    this.readerConnStat = false;
-                    this._reader.Destroy();
+                    readerConnStat = false;
+                    _reader.Destroy();
                     System.Threading.Thread.Sleep(10000);
-                    this._reader = createReader("tcp://192.168.0.101:8081");
+                    _reader = createReader(readerAddr);
                 }
             }
         }
@@ -68,7 +92,8 @@ namespace portal
                 {
                     _reader.Connect();
                     Console.WriteLine("Conectado ao leitor!");
-                    this.readerConnStat = true;
+                    Console.WriteLine("Address: " + readerAddr);
+                    readerConnStat = true;
                     _reader.ParamSet("/reader/region/id", (ThingMagic.Reader.Region)255);
                     SerialReader.TagMetadataFlag flagSet = SerialReader.TagMetadataFlag.ALL;
                     _reader.ParamSet("/reader/metadata", flagSet);
@@ -83,7 +108,7 @@ namespace portal
                     Console.WriteLine("Erro na conexão com o leitor, será realizada nova tentativa de conexão!");
                     System.Threading.Thread.Sleep(2000);
                 }
-            }while(!this.readerConnStat);
+            }while(!readerConnStat);
         }  
         private void onTagRead(TagReadData[] tags)
         {

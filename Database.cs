@@ -95,7 +95,7 @@ namespace portal
         {
             string createSchema = "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
             "(`id` int NOT NULL AUTO_INCREMENT, `dataHora` datetime NOT NULL," + 
-            "`tag` varchar(100) DEFAULT NULL, `portalName` varchar(100) DEFAULT NULL ,PRIMARY KEY (`id`)) " +
+            "`tag` varchar(100) DEFAULT NULL, `portalName` varchar(255) DEFAULT NULL ,PRIMARY KEY (`id`)) " +
             "ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;";
             
             MySqlCommand cmd = new MySqlCommand(createSchema, _connection);
