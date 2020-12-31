@@ -16,6 +16,8 @@ namespace portal
         private string _connectionString { get; set; }
         private MySqlConnection _connection {get; set;}
 
+        private string readerAlias { get; set; }
+
         public void setConnection(string conn)
         {
             _connection = new MySqlConnection(conn);
@@ -81,8 +83,10 @@ namespace portal
                 string password = (string)obj["portal"]["password"];
                 string host = (string)obj["portal"]["host"];
                 string port = (string)obj["portal"]["port"];
+                string dbName = (string)obj["portal"]["dbName"];
+                readerAlias = (string)obj["leitorConfigs"]["portalName"];
 
-                this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=portal";
+                this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database="+dbName+";";
                 this.setConnection(_connectionString);
             }
         }
@@ -91,7 +95,7 @@ namespace portal
         {
             string createSchema = "CREATE TABLE IF NOT EXISTS `portal`.`saida` " + 
             "(`id` int NOT NULL AUTO_INCREMENT, `dataHora` datetime NOT NULL," + 
-            "`tag` varchar(100) DEFAULT NULL, PRIMARY KEY (`id`)) " +
+            "`tag` varchar(100) DEFAULT NULL, `portalName` varchar(100) DEFAULT NULL ,PRIMARY KEY (`id`)) " +
             "ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;";
             
             MySqlCommand cmd = new MySqlCommand(createSchema, _connection);
@@ -110,7 +114,7 @@ namespace portal
 
         public void insertDB(string epc)
         {
-            string sql = "INSERT INTO saida(dataHora, tag) VALUES (now(), \""+ epc +"\")";
+            string sql = "INSERT INTO saida(dataHora, tag, portalName) VALUES (now(), `"+ epc +"`, `"+ readerAlias +"`)";
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
             try
             {
@@ -141,13 +145,16 @@ namespace portal
                 {
                     lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
                 }
-                this.closeConnection();
                 rdr.Close();
                 result = String.Concat(result, JsonConvert.SerializeObject(lista));
             }
             catch(MySqlException e)
             {
                 Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                this.closeConnection();
             }
 
             return result;
@@ -169,13 +176,16 @@ namespace portal
                 {
                     lista.Add(new Tag(rdr.GetInt32(0), Convert.ToString(rdr.GetDateTime(1)), rdr.GetString(2)));
                 }
-                this.closeConnection();
                 rdr.Close();
                 result = String.Concat(result, JsonConvert.SerializeObject(lista));
             }
             catch(MySqlException e)
             {
                 Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                this.closeConnection();
             }
 
             return result;

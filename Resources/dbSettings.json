@@ -1,16 +1,22 @@
 {
+    "leitorConfigs":
+    {
+        "portalName": "Porta Frente"
+    },
     "portal":
     {
         "user": "root",
         "password": "admin",
         "host": "localhost",
-        "port": "3306"
+        "port": "3306",
+        "dbName": "portal",
     },
     "adonis":
     {
         "user": "root",
         "password": "admin",
         "host": "localhost",
-        "port": "3306"
+        "port": "3306",
+        "dbName": "beltrame_rfid"
     }
 }
