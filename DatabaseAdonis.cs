@@ -51,7 +51,7 @@ namespace portal
                 string host = (string)obj["adonis"]["host"];
                 string port = (string)obj["adonis"]["port"];
 
-                this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=adonis";
+                this._connectionString = "server="+host+";user id="+user+";password="+password+";port="+port+";database=beltrame_rfid";
                 this.setConnection(_connectionString);
             }
         }

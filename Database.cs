@@ -22,7 +22,16 @@ namespace portal
         }
         public void openConnection()
         {
-            _connection.Open();
+            try
+            {
+                _connection.Open();
+            }
+            catch(MySqlException ex)
+            {
+                Console.WriteLine("Não foi possível abrir conexão com o banco!");
+                Console.WriteLine(ex.Message);
+            }
+
         }
         public void closeConnection()
         {
@@ -30,12 +39,24 @@ namespace portal
         }
         public int checkDupe(string rdrTag)
         {
-            List<Tag> lista = new List<Tag>();
-            int result;
-            string sql = "SELECT COUNT(id) FROM saida WHERE tag = \""+ rdrTag +"\"";
+            int result = -1;
+            string sql = "SELECT COUNT(id) FROM saida WHERE tag = '"+ rdrTag +"'";
             MySqlCommand cmd = new MySqlCommand(sql, _connection);
-            result = int.Parse(cmd.ExecuteScalar().ToString());
-
+            try
+            {
+                this.openConnection();
+                MySqlDataReader dtr = cmd.ExecuteReader();
+                while(dtr.Read())
+                {
+                    result = dtr.GetInt32(0);
+                }
+                dtr.Close();
+                this.closeConnection();
+            }
+            catch
+            {
+                Console.WriteLine("Não foi possível checar duplicatas!");
+            }
             return result;
         }
 

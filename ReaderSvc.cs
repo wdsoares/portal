@@ -91,14 +91,18 @@ namespace portal
             {
                 foreach(var i in tags)
                 {
+                    Console.WriteLine("Tag read: " + i.EpcString);
+
                     if(Regex.IsMatch(i.EpcString, @"^[0-9]*$"))
                     {
-                        Console.WriteLine("Tag read: " + i.EpcString);
-
                         if(db.checkDupe(i.EpcString) == 0)
                         {
                             db.insertDB(i.EpcString);
                             dbAdonis.update(i.EpcString);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Tag duplicada");
                         }
                     }
                     else
