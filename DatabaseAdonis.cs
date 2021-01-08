@@ -62,7 +62,7 @@ namespace portal
         {
             int tag_id = this.getTagID(epc);
 
-            string sql = "INSERT INTO saidas(tag_id, created_at, updated_at, portalName) VALUES (" + tag_id + " , now(), now(), + `" + readerAlias + "`)";
+            string sql = "INSERT INTO saidas(tag_id, created_at, updated_at, portalName) VALUES (" + tag_id + " , now(), now(), + \"" + readerAlias + "\")";
             if(tag_id != -1)
             {
                 MySqlCommand cmd = new MySqlCommand(sql, this._connection);
